@@ -1,24 +1,24 @@
 export default async function handler(req, res) {
   try {
-    const videoUrl = req.query.url;
-    if (!videoUrl) return res.status(400).json({ error: "URL is required" });
+    const url = req.query.url;
+    if (!url) return res.status(400).json({ error: "URL is required" });
 
-    const api = "https://api.fdownloader.net/api/ajax";
+    const apiUrl = "https://europa-dl-api.vercel.app/facebook";
 
-    const result = await fetch(api, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "X-Requested-With": "XMLHttpRequest"
-      },
-      body: new URLSearchParams({
-        "url": videoUrl,
-        "token": ""
-      })
-    });
+    const result = await fetch(`${apiUrl}?url=${encodeURIComponent(url)}`);
 
-    const data = await result.json();
-    return res.status(200).json(data);
+    const text = await result.text();
+
+    // kalau API bukan JSON → cek manual
+    try {
+      const json = JSON.parse(text);
+      return res.status(200).json(json);
+    } catch (e) {
+      return res.status(500).json({
+        error: "Server returned non-JSON",
+        raw: text.slice(0, 300)
+      });
+    }
 
   } catch (err) {
     return res.status(500).json({ error: err.message });
